@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Спортсмены – импорт/экспорт JSON/XML</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .form-container, .data-container { margin-bottom: 30px; border: 1px solid #ccc; padding: 15px; border-radius: 8px; }
+        form input, form select, button { margin: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .message { padding: 10px; margin-bottom: 15px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Управление данными спортсменов</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message {% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="form-container">
+        <h2>➕ Добавить спортсмена</h2>
+        <form action="{% url 'athletes:add_athlete' %}" method="post">
+            {% csrf_token %}
+            {{ athlete_form.as_p }}
+            <button type="submit">Сохранить в файл</button>
+        </form>
+    </div>
+
+    <div class="form-container">
+        <h2>📂 Загрузить файл (JSON/XML)</h2>
+        <form action="{% url 'athletes:upload_file' %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ upload_form.as_p }}
+            <button type="submit">Загрузить</button>
+        </form>
+    </div>
+
+    <div class="data-container">
+        <h2>📊 Данные из всех файлов</h2>
+        {% if no_files %}
+            <p><em>❌ Нет ни одного файла с данными. Добавьте спортсмена или загрузите файл.</em></p>
+        {% else %}
+            {% if athletes %}
+                <table>
+                    <thead>
+                        <tr><th>Имя</th><th>Вид спорта</th><th>Возраст</th><th>Страна</th><th>Золото</th><th>Серебро</th><th>Бронза</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for a in athletes %}
+                        <tr>
+                            <td>{{ a.name }}</td>
+                            <td>{{ a.sport }}</td>
+                            <td>{{ a.age }}</td>
+                            <td>{{ a.country }}</td>
+                            <td>{{ a.medals.gold }}</td>
+                            <td>{{ a.medals.silver }}</td>
+                            <td>{{ a.medals.bronze }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>⚠️ Файлы присутствуют, но не содержат корректных данных спортсменов.</p>
+            {% endif %}
+            {% if file_errors %}
+                <h3>Ошибки чтения файлов:</h3>
+                <ul class="error">
+                {% for err in file_errors %}
+                    <li>{{ err }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endif %}
+    </div>
+</body>
+</html>
